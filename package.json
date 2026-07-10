@@ -1,0 +1,100 @@
+{
+  "name": "bsl-auto-fold",
+  "displayName": "BSL Auto Fold",
+  "description": "Automatically folds BSL methods, their descriptions, and optional language constructs when a module is opened.",
+  "version": "0.4.3",
+  "publisher": "tyrael",
+  "icon": "images/icon.png",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IIITYRAELIII/BSLAutoFold.git"
+  },
+  "homepage": "https://github.com/IIITYRAELIII/BSLAutoFold#readme",
+  "bugs": {
+    "url": "https://github.com/IIITYRAELIII/BSLAutoFold/issues"
+  },
+  "engines": {
+    "vscode": "^1.91.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:bsl"
+  ],
+  "extensionDependencies": [
+    "1c-syntax.language-1c-bsl"
+  ],
+  "main": "./extension.js",
+  "scripts": {
+    "test": "node --test folding.test.js",
+    "publish:utilities": "node scripts/publish-to-utilities.mjs",
+    "setup-hooks": "node scripts/setup-hooks.mjs",
+    "prepare": "node scripts/setup-hooks.mjs"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "bslAutoFold.foldMethods",
+        "title": "Свернуть все методы",
+        "category": "BSL Auto Fold"
+      },
+      {
+        "command": "bslAutoFold.unfoldMethods",
+        "title": "Развернуть все методы",
+        "category": "BSL Auto Fold"
+      }
+    ],
+    "configuration": {
+      "title": "BSL Auto Fold",
+      "properties": {
+        "bslAutoFold.collapseMethodsOnOpen": {
+          "type": "boolean",
+          "default": true,
+          "description": "Сворачивать процедуры и функции при первом открытии BSL-модуля."
+        },
+        "bslAutoFold.collapseMethodDescriptionsOnOpen": {
+          "type": "boolean",
+          "default": true,
+          "description": "Сворачивать многострочные комментарии-описания непосредственно перед процедурами и функциями."
+        },
+        "bslAutoFold.collapseRegionsOnOpen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Сворачивать #Области при первом открытии BSL-модуля."
+        },
+        "bslAutoFold.collapseConditionalsOnOpen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Сворачивать конструкции Если при первом открытии BSL-модуля."
+        },
+        "bslAutoFold.collapseLoopsOnOpen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Сворачивать циклы Для и Пока при первом открытии BSL-модуля."
+        },
+        "bslAutoFold.collapseTryBlocksOnOpen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Сворачивать конструкции Попытка при первом открытии BSL-модуля."
+        },
+        "bslAutoFold.collapsePreprocessorOnOpen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Сворачивать условные блоки препроцессора #Если при первом открытии BSL-модуля."
+        },
+        "bslAutoFold.delayMs": {
+          "type": "integer",
+          "default": 150,
+          "minimum": 0,
+          "maximum": 2000,
+          "description": "Задержка перед сворачиванием, чтобы VS Code успел рассчитать folding ranges."
+        }
+      }
+    }
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.9.2"
+  }
+}

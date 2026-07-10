@@ -1,0 +1,10 @@
+.gitignore
+.gitattributes
+.githooks/**
+scripts/**
+node_modules/**
+.build/**
+folding.test.js
+package-lock.json
+images/icon.svg
+*.vsix
