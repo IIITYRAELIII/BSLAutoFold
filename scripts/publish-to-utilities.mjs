@@ -43,29 +43,78 @@ function generatedReadme(commit) {
     : "Исходный код находится в отдельном репозитории `BSLAutoFold`.";
   return `# BSL Auto Fold
 
-Готовая сборка расширения VS Code для автоматического сворачивания BSL-кода.
+Расширение VS Code для удобной работы с большими модулями 1С. Автоматически
+сворачивает процедуры, функции и их комментарии-описания при открытии
+BSL-файла.
 
-${sourceLine}
+## Возможности
+
+- автоматически сворачивает процедуры и функции;
+- скрывает вместе с методом строку \`КонецПроцедуры\` или \`КонецФункции\`;
+- отдельно сворачивает многострочные комментарии-описания перед методами;
+- оставляет развёрнутым метод, содержащий строку, на которую выполнен переход;
+- разворачивает метод при командной навигации к строке внутри него;
+- умеет опционально сворачивать области, условия, циклы, \`Попытка\` и
+  директивы препроцессора;
+- не требует включённого BSL Language Server.
+
+Методы и их описания сворачиваются по умолчанию. Остальные категории включаются
+независимо друг от друга в настройках VS Code.
 
 ## Установка
 
-1. Установите расширение \`Language 1C (BSL)\`.
-2. Скачайте лежащий рядом файл [${fileName}](./${fileName}).
-3. В VS Code выполните команду \`Extensions: Install from VSIX...\` и выберите файл.
+1. Установите
+   [Language 1C (BSL)](https://marketplace.visualstudio.com/items?itemName=1c-syntax.language-1c-bsl).
+2. Скачайте [${fileName}](./${fileName}).
+3. В VS Code откройте палитру команд \`Ctrl+Shift+P\`.
+4. Выполните \`Extensions: Install from VSIX...\` и выберите скачанный файл.
+5. Один раз выполните \`Developer: Reload Window\`.
 
-Либо из терминала в этой папке:
+Установка из терминала в этой папке:
 
 \`\`\`powershell
 code --install-extension .\\${fileName} --force
 \`\`\`
 
-Версия: \`${packageJson.version}\`<br>
-Коммит исходников: \`${commit}\`
+## Настройки
+
+| Параметр | По умолчанию | Назначение |
+| --- | ---: | --- |
+| \`bslAutoFold.collapseMethodsOnOpen\` | Вкл. | Сворачивать процедуры и функции. |
+| \`bslAutoFold.collapseMethodDescriptionsOnOpen\` | Вкл. | Сворачивать описания методов. |
+| \`bslAutoFold.collapseRegionsOnOpen\` | Выкл. | Сворачивать \`#Области\`. |
+| \`bslAutoFold.collapseConditionalsOnOpen\` | Выкл. | Сворачивать конструкции \`Если\`. |
+| \`bslAutoFold.collapseLoopsOnOpen\` | Выкл. | Сворачивать циклы \`Для\` и \`Пока\`. |
+| \`bslAutoFold.collapseTryBlocksOnOpen\` | Выкл. | Сворачивать конструкции \`Попытка\`. |
+| \`bslAutoFold.collapsePreprocessorOnOpen\` | Выкл. | Сворачивать блоки препроцессора \`#Если\`. |
+| \`bslAutoFold.delayMs\` | \`150\` | Задержка автосворачивания в миллисекундах. |
+
+## Команды
+
+- \`BSL Auto Fold: Свернуть все методы\`;
+- \`BSL Auto Fold: Развернуть все методы\`.
 
 ## Обновление
 
-Этот README и VSIX генерируются автоматически после каждого коммита
-репозитория исходников. Не редактируйте их вручную.
+Скачайте новый VSIX и повторите установку с параметром \`--force\` либо снова
+выполните \`Extensions: Install from VSIX...\`.
+
+## Удаление
+
+\`\`\`powershell
+code --uninstall-extension tyrael.bsl-auto-fold
+\`\`\`
+
+## Сборка
+
+- версия: \`${packageJson.version}\`;
+- коммит исходников: \`${commit}\`;
+- лицензия: [MIT](./LICENSE).
+
+${sourceLine}
+
+> VSIX, лицензия и этот README автоматически обновляются после каждого коммита
+> репозитория исходников. README не следует редактировать вручную.
 `;
 }
 
@@ -102,6 +151,7 @@ for (const entry of await fs.readdir(utilitiesDirectory)) {
   }
 }
 await fs.copyFile(artifactPath, path.join(utilitiesDirectory, fileName));
+await fs.copyFile(path.join(repositoryRoot, "LICENSE"), path.join(utilitiesDirectory, "LICENSE"));
 await fs.writeFile(
   path.join(utilitiesDirectory, "README.md"),
   generatedReadme(gitOutput("rev-parse", "--short", "HEAD")),
