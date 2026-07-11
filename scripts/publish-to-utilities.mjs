@@ -102,7 +102,7 @@ code --install-extension .\\${fileName} --force
 ## Удаление
 
 \`\`\`powershell
-code --uninstall-extension tyrael.bsl-auto-fold
+code --uninstall-extension Tyrael.bsl-auto-fold
 \`\`\`
 
 ## Сборка
