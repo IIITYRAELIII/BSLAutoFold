@@ -41,7 +41,7 @@ function generatedReadme(commit) {
   const sourceLine = sourceUrl
     ? `Исходный код: [${sourceUrl}](${sourceUrl})`
     : "Исходный код находится в отдельном репозитории `BSLAutoFold`.";
-  return `# BSL Auto Fold
+  return `# 1C (BSL) Auto Fold
 
 Расширение VS Code для удобной работы с большими модулями 1С. Автоматически
 сворачивает процедуры, функции и их комментарии-описания при открытии

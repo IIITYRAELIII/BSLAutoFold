@@ -1,6 +1,6 @@
 {
   "name": "bsl-auto-fold",
-  "displayName": "BSL Auto Fold",
+  "displayName": "1C (BSL) Auto Fold",
   "description": "Automatically folds BSL methods, their descriptions, and optional language constructs when a module is opened.",
   "version": "0.4.3",
   "publisher": "tyrael",

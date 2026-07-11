@@ -1,4 +1,4 @@
-# BSL Auto Fold
+# 1C (BSL) Auto Fold
 
 [Готовый VSIX для установки](https://github.com/IIITYRAELIII/Utilities/tree/main/BSLAutoFold)
 
