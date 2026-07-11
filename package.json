@@ -29,9 +29,7 @@
   "main": "./extension.js",
   "scripts": {
     "test": "node --test folding.test.js",
-    "publish:utilities": "node scripts/publish-to-utilities.mjs",
-    "setup-hooks": "node scripts/setup-hooks.mjs",
-    "prepare": "node scripts/setup-hooks.mjs"
+    "package:vsix": "vsce package"
   },
   "contributes": {
     "commands": [

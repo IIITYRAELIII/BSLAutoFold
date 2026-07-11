@@ -1,4 +1,0 @@
-#!/usr/bin/env sh
-
-repo_root="$(git rev-parse --show-toplevel)" || exit 0
-node "$repo_root/scripts/publish-to-utilities.mjs"

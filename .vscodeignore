@@ -1,7 +1,4 @@
 .gitignore
-.gitattributes
-.githooks/**
-scripts/**
 node_modules/**
 .build/**
 folding.test.js

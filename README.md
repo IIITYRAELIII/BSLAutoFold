@@ -1,6 +1,6 @@
 # 1C (BSL) Auto Fold
 
-[Готовый VSIX для установки](https://github.com/IIITYRAELIII/Utilities/tree/main/BSLAutoFold)
+[Установить из Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=Tyrael.bsl-auto-fold)
 
 Небольшое расширение VS Code для BSL-модулей. При первом открытии файла
 автоматически сворачивает все процедуры, функции и их многострочные
@@ -48,28 +48,17 @@
 npm test
 ```
 
-## Сборка и установка
+## Установка
 
 ```powershell
-npm install
-npm run publish:utilities
+code --install-extension Tyrael.bsl-auto-fold
 ```
 
-## Автосборка дистрибутива
+Либо найдите `1C (BSL) Auto Fold` в панели Extensions VS Code.
 
-После `npm install` репозиторий использует отслеживаемый hook
-`.githooks/post-commit`. Каждый коммит автоматически:
+## Локальная сборка VSIX
 
-1. собирает VSIX локальным `@vscode/vsce`;
-2. заменяет предыдущий VSIX в соседней папке `Utilities/BSLAutoFold`;
-3. обновляет там README с версией и коротким хешем коммита;
-4. удаляет временную папку сборки.
-
-Для другой структуры каталогов задайте переменную окружения
-`BSL_AUTO_FOLD_DISTRIBUTION_DIR` с путём к папке дистрибутива.
-
-Включить hook повторно можно командой:
-
-```powershell
-npm run setup-hooks
+```text
+npm install
+npm run package:vsix
 ```
