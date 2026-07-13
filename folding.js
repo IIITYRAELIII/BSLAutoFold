@@ -24,32 +24,37 @@ const BLOCKS = [
   { type: "try", start: TRY_START, end: TRY_END },
 ];
 
-function findMethods(text) {
-  const lines = String(text).split(/\r?\n/);
-  const result = [];
+const START_EXPRESSIONS = {
+  region: REGION_START,
+  conditional: CONDITIONAL_START,
+  loop: LOOP_START,
+  try: TRY_START,
+  preprocessor: PREPROCESSOR_START,
+};
+
+function splitLines(text) {
+  return String(text).split(/\r?\n/);
+}
+
+function findMethodsInLines(lines) {
+  const methods = [];
   let currentStart = null;
-  for (let index = 0; index < lines.length; index += 1) {
-    if (currentStart == null && METHOD_START.test(lines[index])) {
-      currentStart = index;
-      continue;
-    }
-    if (currentStart != null && METHOD_END.test(lines[index])) {
-      result.push({ start: currentStart, end: index });
+
+  for (let line = 0; line < lines.length; line += 1) {
+    if (currentStart == null && METHOD_START.test(lines[line])) {
+      currentStart = line;
+    } else if (currentStart != null && METHOD_END.test(lines[line])) {
+      methods.push({ start: currentStart, end: line });
       currentStart = null;
     }
   }
-  return result;
+  return methods;
 }
 
-function findMethodStartLines(text) {
-  return findMethods(text).map((method) => method.start);
-}
-
-function findMethodDescriptions(text) {
-  const lines = String(text).split(/\r?\n/);
+function findMethodDescriptionsInLines(lines, methods) {
   const descriptions = [];
 
-  for (const method of findMethods(text)) {
+  for (const method of methods) {
     let line = method.start - 1;
     while (line >= 0 && ANNOTATION.test(lines[line])) line -= 1;
     const end = line;
@@ -57,38 +62,18 @@ function findMethodDescriptions(text) {
     const start = line + 1;
     if (start < end) descriptions.push({ start, end, methodStart: method.start });
   }
-
   return descriptions;
 }
 
-function findStartLines(text, expression) {
-  return String(text)
-    .split(/\r?\n/)
-    .flatMap((line, index) => expression.test(line) ? [index] : []);
+function findStartLinesInLines(lines, expression) {
+  const result = [];
+  for (let line = 0; line < lines.length; line += 1) {
+    if (expression.test(lines[line])) result.push(line);
+  }
+  return result;
 }
 
-function findRegionStartLines(text) {
-  return findStartLines(text, REGION_START);
-}
-
-function findConditionalStartLines(text) {
-  return findStartLines(text, CONDITIONAL_START);
-}
-
-function findLoopStartLines(text) {
-  return findStartLines(text, LOOP_START);
-}
-
-function findTryStartLines(text) {
-  return findStartLines(text, TRY_START);
-}
-
-function findPreprocessorStartLines(text) {
-  return findStartLines(text, PREPROCESSOR_START);
-}
-
-function findBlockRanges(text) {
-  const lines = String(text).split(/\r?\n/);
+function findBlockRangesInLines(lines) {
   const stack = [];
   const ranges = [];
 
@@ -111,15 +96,101 @@ function findBlockRanges(text) {
   return ranges.sort((left, right) => left.start - right.start || right.end - left.end);
 }
 
+function analyzeFolding(text) {
+  const lines = splitLines(text);
+  const methods = findMethodsInLines(lines);
+  const startLines = Object.fromEntries(
+    Object.entries(START_EXPRESSIONS)
+      .map(([type, expression]) => [type, findStartLinesInLines(lines, expression)]),
+  );
+
+  return {
+    methods,
+    descriptions: findMethodDescriptionsInLines(lines, methods),
+    blocks: findBlockRangesInLines(lines),
+    startLines,
+  };
+}
+
+function findContainingMethodInAnalysis(analysis, line) {
+  return analysis.methods.find((method) => method.start <= line && line <= method.end) ?? null;
+}
+
+function collectAutomaticFoldLines(analysis, targetLine, options) {
+  const targetMethod = findContainingMethodInAnalysis(analysis, targetLine);
+  const result = [];
+
+  if (options.methodDescriptions) {
+    result.push(...analysis.descriptions
+      .filter((description) => !(description.start <= targetLine && targetLine <= description.end))
+      .map((description) => description.start));
+  }
+  if (options.methods) {
+    result.push(...analysis.methods
+      .map((method) => method.start)
+      .filter((line) => line !== targetMethod?.start));
+  }
+
+  for (const type of ["region", "conditional", "loop", "try", "preprocessor"]) {
+    if (options[type]) result.push(...analysis.startLines[type]);
+  }
+
+  return [...new Set(result)].sort((left, right) => right - left);
+}
+
+function findMethods(text) {
+  return findMethodsInLines(splitLines(text));
+}
+
+function findMethodStartLines(text) {
+  return findMethods(text).map((method) => method.start);
+}
+
+function findMethodDescriptions(text) {
+  const lines = splitLines(text);
+  return findMethodDescriptionsInLines(lines, findMethodsInLines(lines));
+}
+
+function findStartLines(text, type) {
+  return findStartLinesInLines(splitLines(text), START_EXPRESSIONS[type]);
+}
+
+function findRegionStartLines(text) {
+  return findStartLines(text, "region");
+}
+
+function findConditionalStartLines(text) {
+  return findStartLines(text, "conditional");
+}
+
+function findLoopStartLines(text) {
+  return findStartLines(text, "loop");
+}
+
+function findTryStartLines(text) {
+  return findStartLines(text, "try");
+}
+
+function findPreprocessorStartLines(text) {
+  return findStartLines(text, "preprocessor");
+}
+
+function findBlockRanges(text) {
+  return findBlockRangesInLines(splitLines(text));
+}
+
 function findContainingMethod(text, line) {
-  return findMethods(text).find((method) => method.start <= line && line <= method.end) ?? null;
+  return findContainingMethodInAnalysis({ methods: findMethods(text) }, line);
 }
 
 module.exports = {
-  findMethods,
-  findMethodStartLines,
-  findMethodDescriptions,
+  analyzeFolding,
+  collectAutomaticFoldLines,
   findContainingMethod,
+  findContainingMethodInAnalysis,
+  findMethodStartLines,
+  findMethods,
+  findMethodDescriptions,
   findRegionStartLines,
   findConditionalStartLines,
   findLoopStartLines,

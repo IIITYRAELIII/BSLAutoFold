@@ -3,7 +3,10 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
+  analyzeFolding,
+  collectAutomaticFoldLines,
   findContainingMethod,
+  findContainingMethodInAnalysis,
   findMethodStartLines,
   findMethods,
   findMethodDescriptions,
@@ -115,4 +118,44 @@ test("returns complete nested ranges including closing lines", () => {
     { start: 5, end: 9, type: "try" },
     { start: 6, end: 7, type: "preprocessor" },
   ]);
+});
+
+test("analyzes a document once for automatic folding", () => {
+  const source = [
+    "#Область Основное",
+    "// Первый метод.",
+    "// Подробное описание.",
+    "Процедура Первая()",
+    "Если Истина Тогда",
+    "КонецЕсли",
+    "КонецПроцедуры",
+    "// Второй метод.",
+    "// Подробное описание.",
+    "Функция Вторая()",
+    "КонецФункции",
+    "#КонецОбласти",
+  ].join("\n");
+
+  const analysis = analyzeFolding(source);
+  assert.deepEqual(analysis.methods, [
+    { start: 3, end: 6 },
+    { start: 9, end: 10 },
+  ]);
+  assert.deepEqual(analysis.descriptions, [
+    { start: 1, end: 2, methodStart: 3 },
+    { start: 7, end: 8, methodStart: 9 },
+  ]);
+  assert.deepEqual(analysis.startLines.region, [0]);
+  assert.deepEqual(analysis.startLines.conditional, [4]);
+  assert.deepEqual(findContainingMethodInAnalysis(analysis, 5), { start: 3, end: 6 });
+
+  assert.deepEqual(collectAutomaticFoldLines(analysis, 5, {
+    methods: true,
+    methodDescriptions: true,
+    region: true,
+    conditional: true,
+    loop: false,
+    try: false,
+    preprocessor: false,
+  }), [9, 7, 4, 1, 0]);
 });

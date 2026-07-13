@@ -2,7 +2,7 @@
   "name": "bsl-auto-fold",
   "displayName": "1C (BSL) Auto Fold",
   "description": "Automatically folds BSL methods, their descriptions, and optional language constructs when a module is opened.",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "publisher": "Tyrael",
   "icon": "images/icon.png",
   "license": "SEE LICENSE IN LICENSE",
