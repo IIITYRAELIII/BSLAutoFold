@@ -109,11 +109,15 @@ class AutoFoldSession {
     try {
       const targetLine = editor.selection.active.line;
       const analysis = analyzeFolding(editor.document.getText());
+      const options = automaticFoldOptions(editor.document);
       const selectionLines = collectAutomaticFoldLines(
         analysis,
         targetLine,
-        automaticFoldOptions(editor.document),
+        options,
       );
+      if (Object.values(options).some(Boolean)) {
+        await vscode.commands.executeCommand("editor.unfoldAll");
+      }
       if (selectionLines.length) {
         await vscode.commands.executeCommand("editor.fold", { selectionLines });
       }
