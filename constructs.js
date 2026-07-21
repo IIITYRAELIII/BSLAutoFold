@@ -130,8 +130,17 @@ function findCurrentConstruct(text, line) {
   return findCurrentConstructInAnalysis(analyzeConstructs(text), line);
 }
 
+function isPositionOnConstructKeyword(construct, line, character) {
+  return construct?.keywords.some((keyword) => (
+    keyword.line === line
+    && keyword.startCharacter <= character
+    && character <= keyword.endCharacter
+  )) ?? false;
+}
+
 module.exports = {
   analyzeConstructs,
   findCurrentConstruct,
   findCurrentConstructInAnalysis,
+  isPositionOnConstructKeyword,
 };

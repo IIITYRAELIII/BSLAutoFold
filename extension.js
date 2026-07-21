@@ -9,6 +9,7 @@ const {
 const {
   analyzeConstructs,
   findCurrentConstructInAnalysis,
+  isPositionOnConstructKeyword,
 } = require("./constructs");
 
 const CONFIGURATION_SECTION = "bslAutoFold";
@@ -183,11 +184,20 @@ class ConstructHighlightSession {
       return;
     }
 
+    const config = configurationFor(editor.document);
     const constructs = this.analysisFor(editor.document);
-    const current = findCurrentConstructInAnalysis(
+    let current = findCurrentConstructInAnalysis(
       constructs,
       editor.selection.active.line,
     );
+    if (!config.get("highlightConstructWhenCursorInside", false)
+      && !isPositionOnConstructKeyword(
+        current,
+        editor.selection.active.line,
+        editor.selection.active.character,
+      )) {
+      current = null;
+    }
     const ranges = current?.keywords.map((keyword) => new vscode.Range(
       keyword.line,
       keyword.startCharacter,
@@ -251,7 +261,8 @@ function activate(context) {
       highlightSession.documentChanged(event.document);
     }),
     vscode.workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration(`${CONFIGURATION_SECTION}.highlightCurrentConstruct`)) {
+      if (event.affectsConfiguration(`${CONFIGURATION_SECTION}.highlightCurrentConstruct`)
+        || event.affectsConfiguration(`${CONFIGURATION_SECTION}.highlightConstructWhenCursorInside`)) {
         highlightSession.update(vscode.window.activeTextEditor);
       }
     }),

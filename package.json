@@ -85,7 +85,12 @@
         "bslAutoFold.highlightCurrentConstruct": {
           "type": "boolean",
           "default": true,
-          "description": "Подсвечивать управляющие слова текущей BSL-конструкции, как в конфигураторе 1С."
+          "description": "Подсвечивать связанные управляющие слова BSL-конструкции, когда курсор установлен на одно из них."
+        },
+        "bslAutoFold.highlightConstructWhenCursorInside": {
+          "type": "boolean",
+          "default": false,
+          "description": "Подсвечивать управляющие слова BSL-конструкции, когда курсор находится внутри её тела."
         },
         "bslAutoFold.delayMs": {
           "type": "integer",

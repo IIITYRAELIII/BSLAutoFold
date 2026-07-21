@@ -6,6 +6,7 @@ const {
   analyzeConstructs,
   findCurrentConstruct,
   findCurrentConstructInAnalysis,
+  isPositionOnConstructKeyword,
 } = require("./constructs");
 
 function keywordValues(source, construct) {
@@ -116,4 +117,18 @@ test("returns exact keyword positions after indentation", () => {
     { line: 1, startCharacter: 4, endCharacter: 9 },
     { line: 2, startCharacter: 4, endCharacter: 13 },
   ]);
+});
+
+test("distinguishes a keyword position from a position inside its construct", () => {
+  const source = [
+    "Пока ЕстьДанные() Цикл",
+    "    ОбработатьДанные();",
+    "КонецЦикла;",
+  ].join("\n");
+  const construct = findCurrentConstruct(source, 1);
+
+  assert.equal(isPositionOnConstructKeyword(construct, 0, 2), true);
+  assert.equal(isPositionOnConstructKeyword(construct, 2, 5), true);
+  assert.equal(isPositionOnConstructKeyword(construct, 0, 10), false);
+  assert.equal(isPositionOnConstructKeyword(construct, 1, 8), false);
 });
