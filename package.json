@@ -1,8 +1,8 @@
 {
   "name": "bsl-auto-fold",
   "displayName": "1C (BSL) Auto Fold",
-  "description": "Automatically folds BSL methods, their descriptions, and optional language constructs when a module is opened.",
-  "version": "0.4.5",
+  "description": "Automatically folds BSL methods and highlights the language construct under the cursor.",
+  "version": "0.5.0",
   "publisher": "Tyrael",
   "icon": "images/icon.png",
   "license": "SEE LICENSE IN LICENSE",
@@ -28,7 +28,7 @@
   ],
   "main": "./extension.js",
   "scripts": {
-    "test": "node --test folding.test.js",
+    "test": "node --test folding.test.js constructs.test.js",
     "package:vsix": "vsce package"
   },
   "contributes": {
@@ -81,6 +81,11 @@
           "type": "boolean",
           "default": false,
           "description": "Сворачивать условные блоки препроцессора #Если при первом открытии BSL-модуля."
+        },
+        "bslAutoFold.highlightCurrentConstruct": {
+          "type": "boolean",
+          "default": true,
+          "description": "Подсвечивать управляющие слова текущей BSL-конструкции, как в конфигураторе 1С."
         },
         "bslAutoFold.delayMs": {
           "type": "integer",

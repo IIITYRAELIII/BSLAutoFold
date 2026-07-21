@@ -6,11 +6,16 @@ const {
   collectAutomaticFoldLines,
   findContainingMethodInAnalysis,
 } = require("./folding");
+const {
+  analyzeConstructs,
+  findCurrentConstructInAnalysis,
+} = require("./constructs");
 
 const CONFIGURATION_SECTION = "bslAutoFold";
 const DEFAULT_DELAY_MS = 150;
 
 let autoFoldSession;
+let constructHighlightSession;
 
 function documentKey(document) {
   return document.uri.toString();
@@ -143,6 +148,74 @@ class AutoFoldSession {
   }
 }
 
+class ConstructHighlightSession {
+  constructor() {
+    this.decorationType = vscode.window.createTextEditorDecorationType({
+      backgroundColor: new vscode.ThemeColor("editorBracketMatch.background"),
+      borderColor: new vscode.ThemeColor("editorBracketMatch.border"),
+      borderStyle: "solid",
+      borderWidth: "1px",
+      borderRadius: "2px",
+    });
+    this.analysisCache = new WeakMap();
+    this.decoratedEditor = undefined;
+  }
+
+  analysisFor(document) {
+    const cached = this.analysisCache.get(document);
+    if (cached?.version === document.version) return cached.constructs;
+
+    const constructs = analyzeConstructs(document.getText());
+    this.analysisCache.set(document, { version: document.version, constructs });
+    return constructs;
+  }
+
+  clear() {
+    this.decoratedEditor?.setDecorations(this.decorationType, []);
+    this.decoratedEditor = undefined;
+  }
+
+  update(editor) {
+    if (this.decoratedEditor && this.decoratedEditor !== editor) this.clear();
+    if (!isBslEditor(editor)
+      || !configurationFor(editor.document).get("highlightCurrentConstruct", true)) {
+      this.clear();
+      return;
+    }
+
+    const constructs = this.analysisFor(editor.document);
+    const current = findCurrentConstructInAnalysis(
+      constructs,
+      editor.selection.active.line,
+    );
+    const ranges = current?.keywords.map((keyword) => new vscode.Range(
+      keyword.line,
+      keyword.startCharacter,
+      keyword.line,
+      keyword.endCharacter,
+    )) ?? [];
+
+    editor.setDecorations(this.decorationType, ranges);
+    this.decoratedEditor = editor;
+  }
+
+  documentChanged(document) {
+    this.analysisCache.delete(document);
+    const editor = vscode.window.activeTextEditor;
+    if (editor?.document === document) this.update(editor);
+  }
+
+  close(document) {
+    this.analysisCache.delete(document);
+    if (this.decoratedEditor?.document === document) this.clear();
+  }
+
+  dispose() {
+    this.clear();
+    this.decorationType.dispose();
+  }
+}
+
 function handleNavigation(event) {
   if (!isBslEditor(event.textEditor)) return;
   if (event.kind === vscode.TextEditorSelectionChangeKind.Keyboard
@@ -155,16 +228,37 @@ function handleNavigation(event) {
 
 function activate(context) {
   const session = new AutoFoldSession();
+  const highlightSession = new ConstructHighlightSession();
   autoFoldSession = session;
+  constructHighlightSession = highlightSession;
 
   context.subscriptions.push(
     vscode.languages.registerFoldingRangeProvider(
       { language: "bsl" },
       createFoldingRangeProvider(),
     ),
-    vscode.window.onDidChangeActiveTextEditor((editor) => session.schedule(editor)),
-    vscode.window.onDidChangeTextEditorSelection(handleNavigation),
-    vscode.workspace.onDidCloseTextDocument((document) => session.close(document)),
+    vscode.window.onDidChangeActiveTextEditor((editor) => {
+      session.schedule(editor);
+      highlightSession.update(editor);
+    }),
+    vscode.window.onDidChangeTextEditorSelection((event) => {
+      handleNavigation(event);
+      if (event.textEditor === vscode.window.activeTextEditor) {
+        highlightSession.update(event.textEditor);
+      }
+    }),
+    vscode.workspace.onDidChangeTextDocument((event) => {
+      highlightSession.documentChanged(event.document);
+    }),
+    vscode.workspace.onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration(`${CONFIGURATION_SECTION}.highlightCurrentConstruct`)) {
+        highlightSession.update(vscode.window.activeTextEditor);
+      }
+    }),
+    vscode.workspace.onDidCloseTextDocument((document) => {
+      session.close(document);
+      highlightSession.close(document);
+    }),
     vscode.commands.registerCommand("bslAutoFold.foldMethods", async () => {
       await applyToMethods(vscode.window.activeTextEditor, "editor.fold");
     }),
@@ -174,11 +268,14 @@ function activate(context) {
   );
 
   session.schedule(vscode.window.activeTextEditor);
+  highlightSession.update(vscode.window.activeTextEditor);
 }
 
 function deactivate() {
   autoFoldSession?.dispose();
+  constructHighlightSession?.dispose();
   autoFoldSession = undefined;
+  constructHighlightSession = undefined;
 }
 
 module.exports = { activate, deactivate };
