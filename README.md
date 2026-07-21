@@ -1,8 +1,5 @@
 # 1C (BSL) Auto Fold
 
-[![Версия в Marketplace](https://img.shields.io/visual-studio-marketplace/v/Tyrael.bsl-auto-fold?label=Marketplace)](https://marketplace.visualstudio.com/items?itemName=Tyrael.bsl-auto-fold)
-[![Установки](https://img.shields.io/visual-studio-marketplace/i/Tyrael.bsl-auto-fold?label=Установки)](https://marketplace.visualstudio.com/items?itemName=Tyrael.bsl-auto-fold)
-
 Расширение для VS Code, которое автоматически сворачивает методы BSL-модуля
 при его открытии и подсвечивает управляющие слова текущей языковой конструкции.
 Большие модули сразу показываются как компактный список процедур и функций, а
